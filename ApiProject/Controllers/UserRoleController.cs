@@ -5,28 +5,83 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Application.Interfaces;
+using Application.DTOs;
+using Domain.Entities;
 
 namespace ApiProject.Controllers
 {
-    [Route("[controller]")]
-    public class UserRoleController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserRoleController : ControllerBase
     {
-        private readonly ILogger<UserRoleController> _logger;
+        private readonly IUserRoleRepository _userRoleRepository;
 
-        public UserRoleController(ILogger<UserRoleController> logger)
+        public UserRoleController(IUserRoleRepository userRoleRepository)
         {
-            _logger = logger;
+            _userRoleRepository = userRoleRepository;
         }
 
-        public IActionResult Index()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<UserRoleDto>>> Get()
         {
-            return View();
+            var userRoles = await _userRoleRepository.GetAllAsync();
+            var userRoleDtos = new List<UserRoleDto>();
+            foreach (var ur in userRoles)
+            {
+                userRoleDtos.Add(new UserRoleDto
+                {
+                    UserId = ur.UserId,
+                    RoleId = ur.RoleId,
+
+                });
+            }
+            return Ok(userRoleDtos);
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        [HttpGet("{userId}/{roleId}")]
+        public async Task<ActionResult<UserRoleDto>> GetByIds(int userId, int roleId)
         {
-            return View("Error!");
+            var userRole = await _userRoleRepository.GetByIdsAsync(userId, roleId);
+            if (userRole == null)
+                return NotFound($"UserRole with userId {userId} and roleId {roleId} was not found.");
+            var dto = new UserRoleDto
+            {
+                UserId = userRole.UserId,
+                RoleId = userRole.RoleId,
+
+            };
+            return Ok(dto);
+        }
+
+        [HttpPut]
+        public IActionResult Put([FromBody] UserRoleDto userRoleDto)
+        {
+            if (userRoleDto == null)
+                return NotFound();
+            var userRole = new UserRole
+            {
+                UserId = userRoleDto.UserId,
+                RoleId = userRoleDto.RoleId,
+
+            };
+            _userRoleRepository.Update(userRole);
+            return Ok(userRoleDto);
+        }
+
+        [HttpDelete]
+        public IActionResult Delete([FromBody] UserRoleDto userRoleDto)
+        {
+            if (userRoleDto == null)
+                return NotFound();
+            var userRole = new UserRole
+            {
+                UserId = userRoleDto.UserId,
+                RoleId = userRoleDto.RoleId,
+
+            };
+            _userRoleRepository.Remove(userRole);
+            return NoContent();
         }
     }
 }
