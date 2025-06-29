@@ -34,6 +34,7 @@ namespace ApiProject.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICreateOrderDetailsService, CreateOrderDetailsService>();
             //Interceptor
             services.AddScoped<AuditInterceptor>();
             services.AddHttpContextAccessor();

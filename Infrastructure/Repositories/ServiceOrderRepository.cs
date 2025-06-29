@@ -55,5 +55,19 @@ namespace Infrastructure.Repositories
 
             return (allRegisters, registers);
         }
+
+        public async Task<bool> GetOrdersByVehicleAsync(int idVehicle)
+        {
+            return await _context.ServiceOrder
+                    .AnyAsync(so => so.IdVehicle == idVehicle && (so.IdState == 1 || so.IdState == 2));
+        }
+
+        public async Task<IEnumerable<ServiceOrder>> GetOrdersByClientAsync(int idClient)
+        {
+            return await _context.ServiceOrder
+                .Include(so => so.Vehicle)
+                .Where(so => so.Vehicle.IdClient == idClient && (so.IdState == 2 || so.IdState == 1))
+                .ToListAsync();
+        } 
     }
 } 
