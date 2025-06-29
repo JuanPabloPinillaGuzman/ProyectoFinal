@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<ServiceOrderDto>>> Get()
         {
-            var serviceOrders = await _serviceOrderRepository.GetAllAsync();
-            var serviceOrderDtos = new List<ServiceOrderDto>();
-            foreach (var s in serviceOrders)
-            {
-                serviceOrderDtos.Add(new ServiceOrderDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            return Ok(serviceOrderDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<ServiceOrderDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _serviceOrderRepository.GetAllAsync(pageNumber, pageSize, search);
-            var serviceOrderDtos = new List<ServiceOrderDto>();
-            foreach (var s in registers)
-            {
-                serviceOrderDtos.Add(new ServiceOrderDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(serviceOrderDtos);
+            var serviceOrders = await _unitOfWork.ServiceOrder.GetAllAsync();
+            return _mapper.Map<List<ServiceOrderDto>>(serviceOrders);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ServiceOrderDto>> Get(int id)
         {
-            var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+            var serviceOrder = await _unitOfWork.ServiceOrder.GetByIdAsync(id);
             if (serviceOrder == null)
                 return NotFound($"ServiceOrder with id {id} was not found.");
-            var dto = new ServiceOrderDto
-            {
-                Id = serviceOrder.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<ServiceOrderDto>(serviceOrder);
         }
 
         [HttpPost]
-        public ActionResult<ServiceOrder> Post(ServiceOrderDto serviceOrderDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ServiceOrder>> Post(ServiceOrderDto serviceOrderDto)
         {
-            if (serviceOrderDto == null)
-                return BadRequest();
-            var serviceOrder = new ServiceOrder
+            var serviceOrder = _mapper.Map<ServiceOrder>(serviceOrderDto);
+            _unitOfWork.ServiceOrder.Add(serviceOrder);
+            await _unitOfWork.SaveAsync();
+            if (serviceOrder == null)
             {
-                Id = serviceOrderDto.Id,
-
-            };
-            _serviceOrderRepository.Add(serviceOrder);
-            return CreatedAtAction(nameof(Post), new { id = serviceOrderDto.Id }, serviceOrder);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = serviceOrder.Id }, serviceOrder);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] ServiceOrderDto serviceOrderDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] ServiceOrderDto serviceOrderDto)
         {
             if (serviceOrderDto == null)
                 return NotFound();
-            var serviceOrder = new ServiceOrder
-            {
-                Id = serviceOrderDto.Id,
 
-            };
-            _serviceOrderRepository.Update(serviceOrder);
-            return Ok(serviceOrderDto);
+            var serviceOrder = _mapper.Map<ServiceOrder>(serviceOrderDto);
+            _unitOfWork.ServiceOrder.Update(serviceOrder);
+            await _unitOfWork.SaveAsync();
+            return Ok(serviceOrder);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+            var serviceOrder = await _unitOfWork.ServiceOrder.GetByIdAsync(id);
             if (serviceOrder == null)
                 return NotFound();
-            _serviceOrderRepository.Remove(serviceOrder);
+            _unitOfWork.ServiceOrder.Remove(serviceOrder);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

@@ -8,7 +8,7 @@ namespace Infrastructure.Data
     public class AutoTallerDbContext : DbContext
     {
         public readonly AuditInterceptor _auditInterceptor;
-        public AutoTallerDbContext(DbContextOptions<AutoTallerDbContext> options)
+        public AutoTallerDbContext(DbContextOptions<AutoTallerDbContext> options, AuditInterceptor auditInterceptor)
             : base(options)
         {
             _auditInterceptor = auditInterceptor;

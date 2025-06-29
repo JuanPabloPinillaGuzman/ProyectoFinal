@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<RoleDto>>> Get()
         {
-            var roles = await _roleRepository.GetAllAsync();
-            var roleDtos = new List<RoleDto>();
-            foreach (var r in roles)
-            {
-                roleDtos.Add(new RoleDto
-                {
-                    Id = r.Id,
-
-                });
-            }
-            return Ok(roleDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<RoleDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _roleRepository.GetAllAsync(pageNumber, pageSize, search);
-            var roleDtos = new List<RoleDto>();
-            foreach (var r in registers)
-            {
-                roleDtos.Add(new RoleDto
-                {
-                    Id = r.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(roleDtos);
+            var roles = await _unitOfWork.Role.GetAllAsync();
+            return _mapper.Map<List<RoleDto>>(roles);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<RoleDto>> Get(int id)
         {
-            var role = await _roleRepository.GetByIdAsync(id);
+            var role = await _unitOfWork.Role.GetByIdAsync(id);
             if (role == null)
                 return NotFound($"Role with id {id} was not found.");
-            var dto = new RoleDto
-            {
-                Id = role.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<RoleDto>(role);
         }
 
         [HttpPost]
-        public ActionResult<Role> Post(RoleDto roleDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Role>> Post(RoleDto roleDto)
         {
-            if (roleDto == null)
-                return BadRequest();
-            var role = new Role
+            var role = _mapper.Map<Role>(roleDto);
+            _unitOfWork.Role.Add(role);
+            await _unitOfWork.SaveAsync();
+            if (role == null)
             {
-                Id = roleDto.Id,
-
-            };
-            _roleRepository.Add(role);
-            return CreatedAtAction(nameof(Post), new { id = roleDto.Id }, role);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = role.Id }, role);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] RoleDto roleDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] RoleDto roleDto)
         {
             if (roleDto == null)
                 return NotFound();
-            var role = new Role
-            {
-                Id = roleDto.Id,
 
-            };
-            _roleRepository.Update(role);
-            return Ok(roleDto);
+            var role = _mapper.Map<Role>(roleDto);
+            _unitOfWork.Role.Update(role);
+            await _unitOfWork.SaveAsync();
+            return Ok(role);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var role = await _roleRepository.GetByIdAsync(id);
+            var role = await _unitOfWork.Role.GetByIdAsync(id);
             if (role == null)
                 return NotFound();
-            _roleRepository.Remove(role);
+            _unitOfWork.Role.Remove(role);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

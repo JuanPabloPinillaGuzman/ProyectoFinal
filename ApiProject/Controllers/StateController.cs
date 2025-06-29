@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<StateDto>>> Get()
         {
-            var states = await _stateRepository.GetAllAsync();
-            var stateDtos = new List<StateDto>();
-            foreach (var s in states)
-            {
-                stateDtos.Add(new StateDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            return Ok(stateDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<StateDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _stateRepository.GetAllAsync(pageNumber, pageSize, search);
-            var stateDtos = new List<StateDto>();
-            foreach (var s in registers)
-            {
-                stateDtos.Add(new StateDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(stateDtos);
+            var states = await _unitOfWork.State.GetAllAsync();
+            return _mapper.Map<List<StateDto>>(states);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<StateDto>> Get(int id)
         {
-            var state = await _stateRepository.GetByIdAsync(id);
+            var state = await _unitOfWork.State.GetByIdAsync(id);
             if (state == null)
                 return NotFound($"State with id {id} was not found.");
-            var dto = new StateDto
-            {
-                Id = state.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<StateDto>(state);
         }
 
         [HttpPost]
-        public ActionResult<State> Post(StateDto stateDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<State>> Post(StateDto stateDto)
         {
-            if (stateDto == null)
-                return BadRequest();
-            var state = new State
+            var state = _mapper.Map<State>(stateDto);
+            _unitOfWork.State.Add(state);
+            await _unitOfWork.SaveAsync();
+            if (state == null)
             {
-                Id = stateDto.Id,
-
-            };
-            _stateRepository.Add(state);
-            return CreatedAtAction(nameof(Post), new { id = stateDto.Id }, state);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = state.Id }, state);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] StateDto stateDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] StateDto stateDto)
         {
             if (stateDto == null)
                 return NotFound();
-            var state = new State
-            {
-                Id = stateDto.Id,
 
-            };
-            _stateRepository.Update(state);
-            return Ok(stateDto);
+            var state = _mapper.Map<State>(stateDto);
+            _unitOfWork.State.Update(state);
+            await _unitOfWork.SaveAsync();
+            return Ok(state);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var state = await _stateRepository.GetByIdAsync(id);
+            var state = await _unitOfWork.State.GetByIdAsync(id);
             if (state == null)
                 return NotFound();
-            _stateRepository.Remove(state);
+            _unitOfWork.State.Remove(state);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

@@ -13,7 +13,7 @@ namespace ApiProject.Profiles
             CreateMap<DetailsDiagnostic, DetailsDiagnosticDto>().ReverseMap();
             CreateMap<Diagnostic, DiagnosticDto>().ReverseMap();
             CreateMap<InventoryDetail, InventoryDetailDto>().ReverseMap();
-            CreateMap<Inventory, IventoryDto>().ReverseMap();
+            CreateMap<Inventory, InventoryDto>().ReverseMap();
             CreateMap<Invoice, InvoiceDto>().ReverseMap();
             CreateMap<OrderDetails, OrderDetailsDto>().ReverseMap();
             CreateMap<Replacement, ReplacementDto>().ReverseMap();            

@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<InoviceDto>>> Get()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<InvoiceDto>>> Get()
         {
-            var invoices = await _invoiceRepository.GetAllAsync();
-            var invoiceDtos = new List<InoviceDto>();
-            foreach (var i in invoices)
-            {
-                invoiceDtos.Add(new InoviceDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            return Ok(invoiceDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<InoviceDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _invoiceRepository.GetAllAsync(pageNumber, pageSize, search);
-            var invoiceDtos = new List<InoviceDto>();
-            foreach (var i in registers)
-            {
-                invoiceDtos.Add(new InoviceDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(invoiceDtos);
+            var invoices = await _unitOfWork.Invoice.GetAllAsync();
+            return _mapper.Map<List<InvoiceDto>>(invoices);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<InoviceDto>> Get(int id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<InvoiceDto>> Get(int id)
         {
-            var invoice = await _invoiceRepository.GetByIdAsync(id);
+            var invoice = await _unitOfWork.Invoice.GetByIdAsync(id);
             if (invoice == null)
                 return NotFound($"Invoice with id {id} was not found.");
-            var dto = new InoviceDto
-            {
-                Id = invoice.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<InvoiceDto>(invoice);
         }
 
         [HttpPost]
-        public ActionResult<Invoice> Post(InoviceDto invoiceDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Invoice>> Post(InvoiceDto invoiceDto)
         {
-            if (invoiceDto == null)
-                return BadRequest();
-            var invoice = new Invoice
+            var invoice = _mapper.Map<Invoice>(invoiceDto);
+            _unitOfWork.Invoice.Add(invoice);
+            await _unitOfWork.SaveAsync();
+            if (invoice == null)
             {
-                Id = invoiceDto.Id,
-
-            };
-            _invoiceRepository.Add(invoice);
-            return CreatedAtAction(nameof(Post), new { id = invoiceDto.Id }, invoice);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = invoice.Id }, invoice);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] InoviceDto invoiceDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] InvoiceDto invoiceDto)
         {
             if (invoiceDto == null)
                 return NotFound();
-            var invoice = new Invoice
-            {
-                Id = invoiceDto.Id,
 
-            };
-            _invoiceRepository.Update(invoice);
-            return Ok(invoiceDto);
+            var invoice = _mapper.Map<Invoice>(invoiceDto);
+            _unitOfWork.Invoice.Update(invoice);
+            await _unitOfWork.SaveAsync();
+            return Ok(invoice);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var invoice = await _invoiceRepository.GetByIdAsync(id);
+            var invoice = await _unitOfWork.Invoice.GetByIdAsync(id);
             if (invoice == null)
                 return NotFound();
-            _invoiceRepository.Remove(invoice);
+            _unitOfWork.Invoice.Remove(invoice);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

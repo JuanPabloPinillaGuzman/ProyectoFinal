@@ -26,89 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDetailDto>>> Get()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<OrderDetailsDto>>> Get()
         {
-            var orderDetails = await _orderDetailsRepository.GetAllAsync();
-            var orderDetailDtos = new List<OrderDetailDto>();
-            foreach (var o in orderDetails)
-            {
-                orderDetailDtos.Add(new OrderDetailDto
-                {
-                    Id = o.Id,
-
-                });
-            }
-            return Ok(orderDetailDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<OrderDetailDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _orderDetailsRepository.GetAllAsync(pageNumber, pageSize, search);
-            var orderDetailDtos = new List<OrderDetailDto>();
-            foreach (var o in registers)
-            {
-                orderDetailDtos.Add(new OrderDetailDto
-                {
-                    Id = o.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(orderDetailDtos);
+            var orderDetails = await _unitOfWork.OrderDetails.GetAllAsync();
+            return _mapper.Map<List<OrderDetailsDto>>(orderDetails);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<OrderDetailDto>> Get(int id)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<OrderDetailsDto>> Get(int id)
         {
-            var orderDetail = await _orderDetailsRepository.GetByIdAsync(id);
+            var orderDetail = await _unitOfWork.OrderDetails.GetByIdAsync(id);
             if (orderDetail == null)
                 return NotFound($"OrderDetail with id {id} was not found.");
-            var dto = new OrderDetailDto
-            {
-                Id = orderDetail.Id,
-            };
-            return Ok(dto);
+            return _mapper.Map<OrderDetailsDto>(orderDetail);
         }
 
         [HttpPost]
-        public ActionResult<OrderDetails> Post(OrderDetailDto orderDetailDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<OrderDetails>> Post(OrderDetailsDto orderDetailDto)
         {
-            if (orderDetailDto == null)
-                return BadRequest();
-            var orderDetail = new OrderDetails
+            var orderDetail = _mapper.Map<OrderDetails>(orderDetailDto);
+            _unitOfWork.OrderDetails.Add(orderDetail);
+            await _unitOfWork.SaveAsync();
+            if (orderDetail == null)
             {
-                Id = orderDetailDto.Id,
-
-            };
-            _orderDetailsRepository.Add(orderDetail);
-            return CreatedAtAction(nameof(Post), new { id = orderDetailDto.Id }, orderDetail);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = orderDetail.Id }, orderDetail);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] OrderDetailDto orderDetailDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] OrderDetailsDto orderDetailDto)
         {
             if (orderDetailDto == null)
                 return NotFound();
-            var orderDetail = new OrderDetails
-            {
-                Id = orderDetailDto.Id,
 
-            };
-            _orderDetailsRepository.Update(orderDetail);
-            return Ok(orderDetailDto);
+            var orderDetail = _mapper.Map<OrderDetails>(orderDetailDto);
+            _unitOfWork.OrderDetails.Update(orderDetail);
+            await _unitOfWork.SaveAsync();
+            return Ok(orderDetail);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var orderDetail = await _orderDetailsRepository.GetByIdAsync(id);
+            var orderDetail = await _unitOfWork.OrderDetails.GetByIdAsync(id);
             if (orderDetail == null)
                 return NotFound();
-            _orderDetailsRepository.Remove(orderDetail);
+            _unitOfWork.OrderDetails.Remove(orderDetail);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }
