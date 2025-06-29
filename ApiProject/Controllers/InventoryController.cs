@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class InventoryController : ControllerBase
+    public class InventoryController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<InventoryDto>>> Get()
         {
-            var inventories = await _inventoryRepository.GetAllAsync();
-            var inventoryDtos = new List<InventoryDto>();
-            foreach (var i in inventories)
-            {
-                inventoryDtos.Add(new InventoryDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            return Ok(inventoryDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<InventoryDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _inventoryRepository.GetAllAsync(pageNumber, pageSize, search);
-            var inventoryDtos = new List<InventoryDto>();
-            foreach (var i in registers)
-            {
-                inventoryDtos.Add(new InventoryDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(inventoryDtos);
+            var inventories = await _unitOfWork.Inventory.GetAllAsync();
+            return _mapper.Map<List<InventoryDto>>(inventories);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<InventoryDto>> Get(int id)
         {
-            var inventory = await _inventoryRepository.GetByIdAsync(id);
+            var inventory = await _unitOfWork.Inventory.GetByIdAsync(id);
             if (inventory == null)
                 return NotFound($"Inventory with id {id} was not found.");
-            var dto = new InventoryDto
-            {
-                Id = inventory.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<InventoryDto>(inventory);
         }
 
         [HttpPost]
-        public ActionResult<Inventory> Post(InventoryDto inventoryDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Inventory>> Post(InventoryDto inventoryDto)
         {
-            if (inventoryDto == null)
-                return BadRequest();
-            var inventory = new Inventory
+            var inventory = _mapper.Map<Inventory>(inventoryDto);
+            _unitOfWork.Inventory.Add(inventory);
+            await _unitOfWork.SaveAsync();
+            if (inventory == null)
             {
-                Id = inventoryDto.Id,
-
-            };
-            _inventoryRepository.Add(inventory);
-            return CreatedAtAction(nameof(Post), new { id = inventoryDto.Id }, inventory);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = inventory.Id }, inventory);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] InventoryDto inventoryDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] InventoryDto inventoryDto)
         {
             if (inventoryDto == null)
                 return NotFound();
-            var inventory = new Inventory
-            {
-                Id = inventoryDto.Id,
 
-            };
-            _inventoryRepository.Update(inventory);
-            return Ok(inventoryDto);
+            var inventory = _mapper.Map<Inventory>(inventoryDto);
+            _unitOfWork.Inventory.Update(inventory);
+            await _unitOfWork.SaveAsync();
+            return Ok(inventory);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var inventory = await _inventoryRepository.GetByIdAsync(id);
+            var inventory = await _unitOfWork.Inventory.GetByIdAsync(id);
             if (inventory == null)
                 return NotFound();
-            _inventoryRepository.Remove(inventory);
+            _unitOfWork.Inventory.Remove(inventory);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

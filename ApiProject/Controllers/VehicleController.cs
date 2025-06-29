@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class VehicleController : ControllerBase
+    public class VehicleController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,94 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<VehicleDto>>> Get()
         {
-            var vehicles = await _vehicleRepository.GetAllAsync();
-
-            var vehicleDtos = new List<VehicleDto>();
-            foreach (var v in vehicles)
-            {
-                vehicleDtos.Add(new VehicleDto
-                {
-                    Id = v.Id,
-
-                });
-            }
-            return Ok(vehicleDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<VehicleDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _vehicleRepository.GetAllAsync(pageNumber, pageSize, search);
-            var vehicleDtos = new List<VehicleDto>();
-            foreach (var v in registers)
-            {
-                vehicleDtos.Add(new VehicleDto
-                {
-                    Id = v.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(vehicleDtos);
+            var vehicles = await _unitOfWork.Vehicle.GetAllAsync();
+            return _mapper.Map<List<VehicleDto>>(vehicles);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VehicleDto>> Get(int id)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+            var vehicle = await _unitOfWork.Vehicle.GetByIdAsync(id);
             if (vehicle == null)
                 return NotFound($"Vehicle with id {id} was not found.");
-            var dto = new VehicleDto
-            {
-                Id = vehicle.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<VehicleDto>(vehicle);
         }
 
         [HttpPost]
-        public ActionResult<Vehicle> Post(VehicleDto vehicleDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Vehicle>> Post(VehicleDto vehicleDto)
         {
-            if (vehicleDto == null)
-                return BadRequest();
-            var vehicle = new Vehicle
+            var vehicle = _mapper.Map<Vehicle>(vehicleDto);
+            _unitOfWork.Vehicle.Add(vehicle);
+            await _unitOfWork.SaveAsync();
+            if (vehicle == null)
             {
-                Id = vehicleDto.Id,
-
-            };
-            _vehicleRepository.Add(vehicle);
-
-            return CreatedAtAction(nameof(Post), new { id = vehicleDto.Id }, vehicle);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = vehicle.Id }, vehicle);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] VehicleDto vehicleDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] VehicleDto vehicleDto)
         {
             if (vehicleDto == null)
                 return NotFound();
-            var vehicle = new Vehicle
-            {
-                Id = vehicleDto.Id,
 
-            };
-            _vehicleRepository.Update(vehicle);
-
-            return Ok(vehicleDto);
+            var vehicle = _mapper.Map<Vehicle>(vehicleDto);
+            _unitOfWork.Vehicle.Update(vehicle);
+            await _unitOfWork.SaveAsync();
+            return Ok(vehicle);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+            var vehicle = await _unitOfWork.Vehicle.GetByIdAsync(id);
             if (vehicle == null)
                 return NotFound();
-            _vehicleRepository.Remove(vehicle);
-
+            _unitOfWork.Vehicle.Remove(vehicle);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

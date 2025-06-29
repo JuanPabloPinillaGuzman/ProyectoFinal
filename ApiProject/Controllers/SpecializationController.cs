@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SpecializationController : ControllerBase
+    public class SpecializationController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<SpecializationDto>>> Get()
         {
-            var specializations = await _specializationRepository.GetAllAsync();
-            var specializationDtos = new List<SpecializationDto>();
-            foreach (var s in specializations)
-            {
-                specializationDtos.Add(new SpecializationDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            return Ok(specializationDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<SpecializationDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _specializationRepository.GetAllAsync(pageNumber, pageSize, search);
-            var specializationDtos = new List<SpecializationDto>();
-            foreach (var s in registers)
-            {
-                specializationDtos.Add(new SpecializationDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(specializationDtos);
+            var specializations = await _unitOfWork.Specialization.GetAllAsync();
+            return _mapper.Map<List<SpecializationDto>>(specializations);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<SpecializationDto>> Get(int id)
         {
-            var specialization = await _specializationRepository.GetByIdAsync(id);
+            var specialization = await _unitOfWork.Specialization.GetByIdAsync(id);
             if (specialization == null)
                 return NotFound($"Specialization with id {id} was not found.");
-            var dto = new SpecializationDto
-            {
-                Id = specialization.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<SpecializationDto>(specialization);
         }
 
         [HttpPost]
-        public ActionResult<Specialization> Post(SpecializationDto specializationDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Specialization>> Post(SpecializationDto specializationDto)
         {
-            if (specializationDto == null)
-                return BadRequest();
-            var specialization = new Specialization
+            var specialization = _mapper.Map<Specialization>(specializationDto);
+            _unitOfWork.Specialization.Add(specialization);
+            await _unitOfWork.SaveAsync();
+            if (specialization == null)
             {
-                Id = specializationDto.Id,
-
-            };
-            _specializationRepository.Add(specialization);
-            return CreatedAtAction(nameof(Post), new { id = specializationDto.Id }, specialization);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = specialization.Id }, specialization);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] SpecializationDto specializationDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] SpecializationDto specializationDto)
         {
             if (specializationDto == null)
                 return NotFound();
-            var specialization = new Specialization
-            {
-                Id = specializationDto.Id,
 
-            };
-            _specializationRepository.Update(specialization);
-            return Ok(specializationDto);
+            var specialization = _mapper.Map<Specialization>(specializationDto);
+            _unitOfWork.Specialization.Update(specialization);
+            await _unitOfWork.SaveAsync();
+            return Ok(specialization);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var specialization = await _specializationRepository.GetByIdAsync(id);
+            var specialization = await _unitOfWork.Specialization.GetByIdAsync(id);
             if (specialization == null)
                 return NotFound();
-            _specializationRepository.Remove(specialization);
+            _unitOfWork.Specialization.Remove(specialization);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

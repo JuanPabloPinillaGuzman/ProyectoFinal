@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ClientController : ControllerBase
+    public class ClientController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<ClientDto>>> Get()
         {
-            var clients = await _clientRepository.GetAllAsync();
-            var clientDtos = new List<ClientDto>();
-            foreach (var c in clients)
-            {
-                clientDtos.Add(new ClientDto
-                {
-                    Id = c.Id,
-
-                });
-            }
-            return Ok(clientDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<ClientDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _clientRepository.GetAllAsync(pageNumber, pageSize, search);
-            var clientDtos = new List<ClientDto>();
-            foreach (var c in registers)
-            {
-                clientDtos.Add(new ClientDto
-                {
-                    Id = c.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(clientDtos);
+            var clients = await _unitOfWork.Client.GetAllAsync();
+            return _mapper.Map<List<ClientDto>>(clients);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ClientDto>> Get(int id)
         {
-            var client = await _clientRepository.GetByIdAsync(id);
+            var client = await _unitOfWork.Client.GetByIdAsync(id);
             if (client == null)
                 return NotFound($"Client with id {id} was not found.");
-            var dto = new ClientDto
-            {
-                Id = client.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<ClientDto>(client);
         }
 
         [HttpPost]
-        public ActionResult<Client> Post(ClientDto clientDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Client>> Post(ClientDto clientDto)
         {
-            if (clientDto == null)
-                return BadRequest();
-            var client = new Client
+            var client = _mapper.Map<Client>(clientDto);
+            _unitOfWork.Client.Add(client);
+            await _unitOfWork.SaveAsync();
+            if (client == null)
             {
-                Id = clientDto.Id,
-
-            };
-            _clientRepository.Add(client);
-            return CreatedAtAction(nameof(Post), new { id = clientDto.Id }, client);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = client.Id }, client);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] ClientDto clientDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] ClientDto clientDto)
         {
             if (clientDto == null)
                 return NotFound();
-            var client = new Client
-            {
-                Id = clientDto.Id,
 
-            };
-            _clientRepository.Update(client);
-            return Ok(clientDto);
+            var client = _mapper.Map<Client>(clientDto);
+            _unitOfWork.Client.Update(client);
+            await _unitOfWork.SaveAsync();
+            return Ok(client);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var client = await _clientRepository.GetByIdAsync(id);
+            var client = await _unitOfWork.Client.GetByIdAsync(id);
             if (client == null)
                 return NotFound();
-            _clientRepository.Remove(client);
+            _unitOfWork.Client.Remove(client);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

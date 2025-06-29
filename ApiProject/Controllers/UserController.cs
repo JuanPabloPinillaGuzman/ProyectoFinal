@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public class UserController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +26,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<UserDto>>> Get()
         {
-            var users = await _userRepository.GetAllAsync();
-            var userDtos = new List<UserDto>();
-            foreach (var u in users)
-            {
-                userDtos.Add(new UserDto
-                {
-                    Id = u.Id,
-
-                });
-            }
-            return Ok(userDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _userRepository.GetAllAsync(pageNumber, pageSize, search);
-            var userDtos = new List<UserDto>();
-            foreach (var u in registers)
-            {
-                userDtos.Add(new UserDto
-                {
-                    Id = u.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(userDtos);
+            var users = await _unitOfWork.User.GetAllAsync();
+            return _mapper.Map<List<UserDto>>(users);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<UserDto>> Get(int id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.User.GetByIdAsync(id);
             if (user == null)
                 return NotFound($"User with id {id} was not found.");
-            var dto = new UserDto
-            {
-                Id = user.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<UserDto>(user);
         }
 
         [HttpPost]
-        public ActionResult<User> Post(UserDto userDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<User>> Post(UserDto userDto)
         {
-            if (userDto == null)
-                return BadRequest();
-            var user = new User
+            var user = _mapper.Map<User>(userDto);
+            _unitOfWork.User.Add(user);
+            await _unitOfWork.SaveAsync();
+            if (user == null)
             {
-                Id = userDto.Id,
-
-            };
-            _userRepository.Add(user);
-            return CreatedAtAction(nameof(Post), new { id = userDto.Id }, user);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = user.Id }, user);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] UserDto userDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] UserDto userDto)
         {
             if (userDto == null)
                 return NotFound();
-            var user = new User
-            {
-                Id = userDto.Id,
 
-            };
-            _userRepository.Update(user);
-            return Ok(userDto);
+            var user = _mapper.Map<User>(userDto);
+            _unitOfWork.User.Update(user);
+            await _unitOfWork.SaveAsync();
+            return Ok(user);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _unitOfWork.User.GetByIdAsync(id);
             if (user == null)
                 return NotFound();
-            _userRepository.Remove(user);
+            _unitOfWork.User.Remove(user);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }
