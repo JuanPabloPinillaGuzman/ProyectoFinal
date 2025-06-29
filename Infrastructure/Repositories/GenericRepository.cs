@@ -39,9 +39,9 @@ namespace Infrastructure.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public virtual async Task<(int totalRegisters, IEnumerable<T> registers)> GetAllAsync(int pageIndex, int pageSize, string search)
+        public virtual async Task<(int allRegisters, IEnumerable<T> registers)> GetAllAsync(int pageIndex, int pageSize, string search)
         {
-            var totalRegisters = await _context.Set<T>()
+            var allRegisters = await _context.Set<T>()
                                         .CountAsync();
 
             var registers = await _context.Set<T>()
@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
                                     .Take(pageSize)
                                     .ToListAsync();
 
-            return (totalRegisters, registers);
+            return (allRegisters, registers);
         }
     
         public virtual async Task<T> GetByIdAsync(int id)

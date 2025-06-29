@@ -87,5 +87,22 @@ namespace ApiProject.Controllers
             await _unitOfWork.SaveAsync();
             return NoContent();
         }
+
+        [HttpGet("pages")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<ServiceOrderDto>>> GetPaginated(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string search = "")
+        {
+            var (allRegisters, registers) = await _unitOfWork.ServiceOrder.GetAllAsync(pageNumber, pageSize, search);
+            var serviceOrderDtos = _mapper.Map<List<ServiceOrderDto>>(registers);
+
+            // Agregar X-Total-Count en los encabezados HTTP
+            Response.Headers.Append("X-Total-Count", allRegisters.ToString());
+
+            return Ok(serviceOrderDtos);
+        }
     }
 }
