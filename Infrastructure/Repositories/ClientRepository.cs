@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories
         public override async Task<Client> GetByIdAsync(int id)
         {
             return await _context.Client
-                .FirstOrDefaultAsync(cc => cc.IdClient == id) ?? throw new KeyNotFoundException($"Client with id {id} was not found");
+                .FirstOrDefaultAsync(cc => cc.Id == id) ?? throw new KeyNotFoundException($"Client with id {id} was not found");
         }
     
     }

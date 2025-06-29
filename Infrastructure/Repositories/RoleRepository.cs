@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
         public override async Task<Role> GetByIdAsync(int id)
         {
             return await _context.Role
-                .FirstOrDefaultAsync(i => i.IdRole == id) ?? throw new KeyNotFoundException($"Role with id {id} was not found");
+                .FirstOrDefaultAsync(i => i.Id == id) ?? throw new KeyNotFoundException($"Role with id {id} was not found");
         }
     }
 } 

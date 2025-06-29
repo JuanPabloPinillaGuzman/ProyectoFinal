@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class ServiceType : BaseEntity
     {
-        public int IdServiceType { get; set; }
+        public int Id { get; set; }
         public int Duration { get; set; }
         public string? Description { get; set; }
 

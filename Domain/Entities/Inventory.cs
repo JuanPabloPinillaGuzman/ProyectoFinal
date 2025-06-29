@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class Inventory : BaseEntity
     {
-        public int IdInventory { get; set; }
+        public int Id { get; set; }
         public string? Name { get; set; }
 
         // Navigation properties

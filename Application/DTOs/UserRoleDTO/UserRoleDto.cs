@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class UserRole
+    public class UserRoleDto
     {
         public int IdUser { get; set; }
         public int IdRole { get; set; }

@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
         public override async Task<Inventory> GetByIdAsync(int id)
         {
             return await _context.Inventory
-                .FirstOrDefaultAsync(cc => cc.IdInventory == id) ?? throw new KeyNotFoundException($"Inventory with id {id} was not found");
+                .FirstOrDefaultAsync(cc => cc.Id == id) ?? throw new KeyNotFoundException($"Inventory with id {id} was not found");
         }
     }
 } 

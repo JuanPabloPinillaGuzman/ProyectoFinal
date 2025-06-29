@@ -7,10 +7,11 @@ namespace Domain.Entities
 {
     public class Role : BaseEntity
     {
-        public int IdRole { get; set; }
+        public int Id { get; set; }
         public string? Description { get; set; }
-        
+
         // Navigation properties
         public ICollection<UserRole>? UserRoles { get; set; }
+        public ICollection<User> Users { get; set; } = new HashSet<User>();
     }
 }

@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class Replacement : BaseEntity
     {
-        public int IdReplacement { get; set; }
+        public int Id { get; set; }
         public string? Code { get; set; }
         public string? Description { get; set; }
         public int StockQuantity { get; set; }
