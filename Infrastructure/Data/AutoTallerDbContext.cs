@@ -7,11 +7,11 @@ namespace Infrastructure.Data
 {
     public class AutoTallerDbContext : DbContext
     {
-        // public readonly AuditInterceptor _auditInterceptor;
+        public readonly AuditInterceptor _auditInterceptor;
         public AutoTallerDbContext(DbContextOptions<AutoTallerDbContext> options)
             : base(options)
         {
-            // _auditInterceptor = auditInterceptor;
+            _auditInterceptor = auditInterceptor;
         }
         public DbSet<Specialization> Specialization { get; set; }
         public DbSet<ServiceType> ServiceType { get; set; }
@@ -38,9 +38,9 @@ namespace Infrastructure.Data
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
 
-        // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        // {
-        //     optionsBuilder.AddInterceptors(_auditInterceptor);
-        // }
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.AddInterceptors(_auditInterceptor);
+        }
     }
 }
