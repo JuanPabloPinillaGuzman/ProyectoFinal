@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
+using AutoMapper;
 
 namespace ApiProject.Controllers
 {
