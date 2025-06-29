@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class OrderDetailsConfiguration
+    public class OrderDetailsConfiguration : IEntityTypeConfiguration<OrderDetails>
     {
         public void Configure(EntityTypeBuilder<OrderDetails> builder)
         {

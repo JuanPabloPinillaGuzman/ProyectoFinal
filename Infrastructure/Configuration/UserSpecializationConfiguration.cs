@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class UserSpecializationConfiguration
+    public class UserSpecializationConfiguration : IEntityTypeConfiguration<UserSpecialization>
     {
         public void Configure(EntityTypeBuilder<UserSpecialization> builder)
         {

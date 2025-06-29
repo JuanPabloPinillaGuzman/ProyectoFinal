@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class InvoiceConfiguration
+    public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
     {
         public void Configure(EntityTypeBuilder<Invoice> builder)
         {
@@ -53,9 +53,6 @@ namespace Infrastructure.Configuration
                 .HasDefaultValueSql("CURRENT_DATE")
                 .ValueGeneratedOnAddOrUpdate();
                 
-            builder.Property(i => i.IdServiceOrder)
-                .HasColumnName("service_order_id");
-
             builder.HasOne(i => i.ServiceOrders)
                 .WithOne(s => s.Invoice)
                 .HasForeignKey<Invoice>(i => i.IdServiceOrder);

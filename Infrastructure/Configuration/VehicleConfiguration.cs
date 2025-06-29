@@ -8,11 +8,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class VehicleConfiguration
+    public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
     {
         public void Configure(EntityTypeBuilder<Vehicle> builder)
         {
-            builder.ToTable("replacements");
+            builder.ToTable("vehicles");
 
             // Clave primaria
             builder.HasKey(c => c.Id);

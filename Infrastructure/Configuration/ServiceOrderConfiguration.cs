@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class ServiceOrderConfiguration
+    public class ServiceOrderConfiguration : IEntityTypeConfiguration<ServiceOrder>
     {
         public void Configure(EntityTypeBuilder<ServiceOrder> builder)
         {
@@ -64,7 +64,6 @@ namespace Infrastructure.Configuration
                 .HasColumnName("exit_date");
 
             builder.Property(a => a.ClientMessage)
-                .IsRequired()
                 .HasColumnName("client_message");
 
             builder.Property(e => e.CreatedAt)
@@ -78,10 +77,6 @@ namespace Infrastructure.Configuration
                 .HasColumnType("date")
                 .HasDefaultValueSql("CURRENT_DATE")
                 .ValueGeneratedOnAddOrUpdate();
-
-            builder.HasOne(so => so.Invoice)
-                .WithOne(i => i.ServiceOrders)
-                .HasForeignKey<Invoice>(i => i.IdServiceOrder);
         }
     }
 }

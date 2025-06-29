@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class InventoryDetailConfiguration
+    public class InventoryDetailConfiguration : IEntityTypeConfiguration<InventoryDetail>
     {
         public void Configure(EntityTypeBuilder<InventoryDetail> builder)
         {

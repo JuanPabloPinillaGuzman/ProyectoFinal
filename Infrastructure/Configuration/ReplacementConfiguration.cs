@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configuration
 {
-    public class ReplacementConfiguration
+    public class ReplacementConfiguration : IEntityTypeConfiguration<Replacement>
     {
         public void Configure(EntityTypeBuilder<Replacement> builder)
         {
