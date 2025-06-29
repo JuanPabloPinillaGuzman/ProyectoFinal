@@ -7,18 +7,18 @@ namespace Domain.Entities
 {
     public class ServiceOrder : BaseEntity
     {
-        public int IdOrder { get; set; }
+        public int Id { get; set; }
         public int IdVehicle { get; set; }
-        public int IdMechanic { get; set; }
+        public int IdUser { get; set; }
         public int IdServiceType { get; set; }
         public int IdState { get; set; }
-        public DateTime EntryDate { get; set; }
-        public DateTime? ExitDate { get; set; }
+        public DateOnly EntryDate { get; set; }
+        public DateOnly ExitDate { get; set; }
         public string? ClientMessage { get; set; }
         
         // Navigation properties
         public Vehicle? Vehicle { get; set; }
-        public User? Mechanic { get; set; }
+        public User? User { get; set; }
         public ServiceType? ServiceType { get; set; }
         public State? State { get; set; }
         public ICollection<DetailsDiagnostic>? DetailsDiagnostics { get; set; }

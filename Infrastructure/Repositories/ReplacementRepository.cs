@@ -19,7 +19,7 @@ namespace Infrastructure.Repositories
         public override async Task<Replacement> GetByIdAsync(int id)
         {
             return await _context.Replacement
-                .FirstOrDefaultAsync(i => i.IdReplacement == id) ?? throw new KeyNotFoundException($"Replacement with id {id} was not found");
+                .FirstOrDefaultAsync(i => i.Id == id) ?? throw new KeyNotFoundException($"Replacement with id {id} was not found");
         }
     }
 } 

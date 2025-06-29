@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories
         public override async Task<ServiceOrder> GetByIdAsync(int id)
         {
             return await _context.ServiceOrder
-                .FirstOrDefaultAsync(i => i.IdOrder == id) ?? throw new KeyNotFoundException($"ServiceOrde with id {id} was not found");
+                .FirstOrDefaultAsync(i => i.Id == id) ?? throw new KeyNotFoundException($"ServiceOrde with id {id} was not found");
         }
     }
 } 

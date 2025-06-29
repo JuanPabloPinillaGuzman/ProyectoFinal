@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class Specialization : BaseEntity
     {
-        public int IdSpecialization { get; set; }
+        public int Id { get; set; }
         public string? Name { get; set; }
 
         // Navigation properties

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class Vehicle
+    public class VehicleDto
     {
-        public int IdVehicle { get; set; }
+        public int Id { get; set; }
         public int IdClient { get; set; }
         public string? Brand { get; set; }
         public string? Model { get; set; }

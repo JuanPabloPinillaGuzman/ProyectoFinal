@@ -15,11 +15,29 @@ namespace Infrastructure.Repositories
         {
             _context = context;
         }
-        
+
         public override async Task<User> GetByIdAsync(int id)
         {
             return await _context.User
-                .FirstOrDefaultAsync(cc => cc.IdUser == id) ?? throw new KeyNotFoundException($"User with id {id} was not found");
+                .FirstOrDefaultAsync(cc => cc.Id == id) ?? throw new KeyNotFoundException($"User with id {id} was not found");
+        }
+        
+        public async Task<User> GetByUsernameAsync(string username)
+        {
+            return await _context.User
+                            .Include(u => u.UserRoles)
+                                .ThenInclude(ur => ur.Role)
+                            .Include(u => u.RefreshTokens)
+                            .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
+        }
+
+        public async Task<User> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _context.User
+                            .Include(u => u.UserRoles)
+                                .ThenInclude(ur => ur.Role)
+                            .Include(u => u.RefreshTokens)
+                            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
         }
     }
 } 

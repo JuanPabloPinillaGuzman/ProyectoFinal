@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class State
+    public class StateDto
     {
-        public int IdState { get; set; }
+        public int Id { get; set; }
         public string? StateType { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class UserSpecialization
+    public class UserSpecializationDto
     {
         public int IdUser { get; set; }
         public int IdSpecialization { get; set; }

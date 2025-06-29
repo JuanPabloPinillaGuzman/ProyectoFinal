@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class State : BaseEntity
     {
-        public int IdState { get; set; }
+        public int Id { get; set; }
         public string? StateType { get; set; }
 
         // Navigation properties

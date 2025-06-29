@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories
         public override async Task<ServiceType> GetByIdAsync(int id)
         {
             return await _context.ServiceType
-                .FirstOrDefaultAsync(cc => cc.IdServiceType == id) ?? throw new KeyNotFoundException($"ServiceType with id {id} was not found");
+                .FirstOrDefaultAsync(cc => cc.Id == id) ?? throw new KeyNotFoundException($"ServiceType with id {id} was not found");
         }
     }
 } 

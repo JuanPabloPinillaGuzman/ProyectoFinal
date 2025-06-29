@@ -11,7 +11,7 @@ namespace Domain.Entities
         public int IdSpecialization { get; set; }
         
         // Navigation properties
-        public User User { get; set; }
-        public Specialization Specialization { get; set; }
+        public User? User { get; set; }
+        public Specialization? Specialization { get; set; }
     }
 }

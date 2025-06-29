@@ -7,7 +7,7 @@ namespace Domain.Entities
 {
     public class InventoryDetail : BaseEntity
     {
-        public int IdDetail { get; set; }
+        public int Id { get; set; }
         public int IdOrder { get; set; }
         public int IdInventory { get; set; }
         public int Quantity { get; set; }

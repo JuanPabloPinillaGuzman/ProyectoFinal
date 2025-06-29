@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class Inventory
+    public class InventoryDto
     {
-        public int IdInventory { get; set; }
+        public int Id { get; set; }
         public string? Name { get; set; }
     }
 }

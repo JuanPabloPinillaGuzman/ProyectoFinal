@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace Application.DTOs
 {
-    public class Specialization
+    public class SpecializationDto
     {
-        public int IdSpecialization { get; set; }
+        public int Id { get; set; }
         public string? Name { get; set; }
     }
 }

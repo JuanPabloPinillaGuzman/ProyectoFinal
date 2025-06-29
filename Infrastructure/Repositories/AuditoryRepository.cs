@@ -22,4 +22,4 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(a => a.Id == id) ?? throw new KeyNotFoundException($"Auditory with id {id} was not found");
         }
     }
-}
+} 
