@@ -69,7 +69,7 @@ namespace ApiProject.Controllers
             if (vehicleDto == null)
                 return NotFound();
 
-            var ordenesActivas = await _unitOfWork.ServiceOrder.GetByVehicleIdAsync(id);
+            var ordenesActivas = await _unitOfWork.ServiceOrder.GetOrdersByVehicleAsync(id);
 
             if (ordenesActivas)
             {
@@ -91,7 +91,7 @@ namespace ApiProject.Controllers
             if (vehicle == null)
                 return NotFound();
 
-            var ordenesActivas = await _unitOfWork.ServiceOrder.GetByVehicleIdAsync(id);
+            var ordenesActivas = await _unitOfWork.ServiceOrder.GetOrdersByVehicleAsync(id);
 
             if (ordenesActivas)
             {

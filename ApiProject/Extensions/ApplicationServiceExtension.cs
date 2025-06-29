@@ -8,6 +8,7 @@ using ApiProject.Helpers;
 using ApiProject.Helpers.Errors;
 using ApiProject.Services;
 using Application.Interfaces;
+using Application.Services;
 using Domain.Entities;
 using Infrastructure.Interceptors;
 using Infrastructure.UnitOfWork;
@@ -34,7 +35,8 @@ namespace ApiProject.Extensions
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ICreateOrderDetailsService, CreateOrderDetailsService>();
+            services.AddScoped<CreateOrderDetailsService>();
+            services.AddScoped<GenerateInvoiceService>();
             //Interceptor
             services.AddScoped<AuditInterceptor>();
             services.AddHttpContextAccessor();

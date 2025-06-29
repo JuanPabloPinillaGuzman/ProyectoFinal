@@ -9,6 +9,8 @@ using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
 using AutoMapper;
+using Application.Services;
+using ApiProject.Helpers.Errors;
 
 namespace ApiProject.Controllers
 {
@@ -18,11 +20,13 @@ namespace ApiProject.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly CreateOrderDetailsService _registerOrderDetails;
 
-        public ServiceOrderController(IUnitOfWork unitOfWork, IMapper mapper)
+        public ServiceOrderController(IUnitOfWork unitOfWork, IMapper mapper, CreateOrderDetailsService registerOrderDetails)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _registerOrderDetails = registerOrderDetails;
         }
 
         [HttpGet]
@@ -103,6 +107,32 @@ namespace ApiProject.Controllers
             Response.Headers.Append("X-Total-Count", allRegisters.ToString());
 
             return Ok(serviceOrderDtos);
+        }
+
+        [HttpPost("{idServiceOrder}/details")]
+        public async Task<IActionResult> AddOrderDetail(int idServiceOrder, [FromBody] OrderDetailsDto orderDetail)
+        {
+            try
+            {
+                await _registerOrderDetails.CreateOrderDetailsAsync(
+                    idServiceOrder,
+                    orderDetail.IdReplacement,
+                    orderDetail.Quantity
+                );
+                return Ok("Order detail added successfully.");
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("not found"))
+                {
+                    return NotFound(new ApiResponse(404, ex.Message));
+                }
+                if (ex.Message.Contains("Insufficient stock"))
+                {
+                    return BadRequest(new ApiResponse(400, ex.Message));
+                }
+                return StatusCode(500, new ApiResponse(500, ex.Message));
+            }
         }
     }
 }
