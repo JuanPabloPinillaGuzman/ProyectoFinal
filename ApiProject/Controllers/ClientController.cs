@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ClientController : ControllerBase
+    public class ClientController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;

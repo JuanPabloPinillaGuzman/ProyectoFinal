@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class InventoryDetailController : ControllerBase
+    public class InventoryDetailController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;

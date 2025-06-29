@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ApiProject.Services;
 using Microsoft.IdentityModel.Tokens;
-using Application.DTOs.Auth;
+using Application.DTOs;
 
 namespace ApiProject.Services
 {

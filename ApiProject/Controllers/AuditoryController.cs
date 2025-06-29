@@ -9,12 +9,13 @@ using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
 using AutoMapper;
+using ApiProject.Controllers;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuditoryController : ControllerBase
+    public class AuditoryController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
