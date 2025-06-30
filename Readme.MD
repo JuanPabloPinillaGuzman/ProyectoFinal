@@ -124,3 +124,8 @@ ProyectoFinal/
 ```
 
 ---
+
+# Autores ✒️
+
+- Joinner Alexis Silva Sanchez  
+- Juan Pablo Pinilla Guzman  
