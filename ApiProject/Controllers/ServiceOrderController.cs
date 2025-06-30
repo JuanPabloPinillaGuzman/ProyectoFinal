@@ -11,11 +11,13 @@ using Domain.Entities;
 using AutoMapper;
 using Application.Services;
 using ApiProject.Helpers.Errors;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Recepcionist, Mechanic")]
     public class ServiceOrderController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

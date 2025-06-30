@@ -9,11 +9,13 @@ using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Recepcionist")]
     public class VehicleController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

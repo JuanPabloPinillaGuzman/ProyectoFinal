@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 using Application.Services;
 using ApiProject.Helpers.Errors;
@@ -16,6 +17,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Mechanic")]
     public class InvoiceController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

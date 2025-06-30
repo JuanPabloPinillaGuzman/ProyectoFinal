@@ -9,9 +9,9 @@ namespace ApiProject.Helpers
     {
         public enum Roles
         {
-            Administrador,
-            Recepcionista,
-            Mecanico
+            Administrator,
+            Receptionist,
+            Mechanic
         }
     }
 }
