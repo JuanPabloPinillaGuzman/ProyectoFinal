@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using ApiProject.Controllers;
 using Application.DTOs;
-using AutoMapper;;
+using AutoMapper;
 
 namespace ApiProject.Controllers
 {
