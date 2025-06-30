@@ -1,16 +1,12 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
-
 namespace ApiProject.Controllers
 {
     [ApiController]

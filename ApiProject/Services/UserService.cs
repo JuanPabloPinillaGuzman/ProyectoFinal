@@ -104,7 +104,7 @@ namespace ApiProject.Services
                 dataUserDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 dataUserDto.UserName = user.Username;
                 dataUserDto.Email = user.Email;
-                dataUserDto.Roles = user.UserRoles
+                dataUserDto.Rols = user.UserRoles
                     .Select(ur => ur.Role.Description)
                     .ToList();
                 if (user.RefreshTokens.Any(a => a.IsActive))
@@ -231,7 +231,7 @@ namespace ApiProject.Services
             datosUsuarioDto.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
             datosUsuarioDto.Email = usuario.Email;
             datosUsuarioDto.UserName = usuario.Username;
-            datosUsuarioDto.Roles = usuario.UserRoles
+            datosUsuarioDto.Rols = usuario.UserRoles
                                                 .Select(ur => ur.Role.Description)
                                                 .ToList();
             datosUsuarioDto.RefreshToken = newRefreshToken.Token;

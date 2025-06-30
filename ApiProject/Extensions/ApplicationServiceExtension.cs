@@ -111,6 +111,10 @@ namespace ApiProject.Extensions
                     options.AddPolicy("MechanicOnly", policy =>
                         policy.RequireRole("Mechanic"));
 
+                    // Solo Clients
+                    options.AddPolicy("ClientOnly", policy =>
+                        policy.RequireRole("Client"));
+
                     // Admins o Mechanics
                     options.AddPolicy("AdminOrMechanic", policy =>
                         policy.RequireRole("Admin", "Mechanic"));
