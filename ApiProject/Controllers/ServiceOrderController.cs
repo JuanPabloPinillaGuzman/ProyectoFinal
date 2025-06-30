@@ -12,9 +12,9 @@ using ApiProject.Helpers.Errors;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize(Roles = "Administrator, Recepcionist, Mechanic")]
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator, Recepcionist, Mechanic")]
     public class ServiceOrderController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
