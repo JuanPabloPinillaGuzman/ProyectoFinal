@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ServiceTypeController : ControllerBase
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator")]
+    public class ServiceTypeController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +25,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<ServiceTypeDto>>> Get()
         {
-            var serviceTypes = await _serviceTypeRepository.GetAllAsync();
-            var serviceTypeDtos = new List<ServiceTypeDto>();
-            foreach (var s in serviceTypes)
-            {
-                serviceTypeDtos.Add(new ServiceTypeDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            return Ok(serviceTypeDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<ServiceTypeDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _serviceTypeRepository.GetAllAsync(pageNumber, pageSize, search);
-            var serviceTypeDtos = new List<ServiceTypeDto>();
-            foreach (var s in registers)
-            {
-                serviceTypeDtos.Add(new ServiceTypeDto
-                {
-                    Id = s.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(serviceTypeDtos);
+            var serviceTypes = await _unitOfWork.ServiceType.GetAllAsync();
+            return _mapper.Map<List<ServiceTypeDto>>(serviceTypes);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ServiceTypeDto>> Get(int id)
         {
-            var serviceType = await _serviceTypeRepository.GetByIdAsync(id);
+            var serviceType = await _unitOfWork.ServiceType.GetByIdAsync(id);
             if (serviceType == null)
                 return NotFound($"ServiceType with id {id} was not found.");
-            var dto = new ServiceTypeDto
-            {
-                Id = serviceType.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<ServiceTypeDto>(serviceType);
         }
 
         [HttpPost]
-        public ActionResult<ServiceType> Post(ServiceTypeDto serviceTypeDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ServiceType>> Post(ServiceTypeDto serviceTypeDto)
         {
-            if (serviceTypeDto == null)
-                return BadRequest();
-            var serviceType = new ServiceType
+            var serviceType = _mapper.Map<ServiceType>(serviceTypeDto);
+            _unitOfWork.ServiceType.Add(serviceType);
+            await _unitOfWork.SaveAsync();
+            if (serviceType == null)
             {
-                Id = serviceTypeDto.Id,
-
-            };
-            _serviceTypeRepository.Add(serviceType);
-            return CreatedAtAction(nameof(Post), new { id = serviceTypeDto.Id }, serviceType);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = serviceType.Id }, serviceType);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] ServiceTypeDto serviceTypeDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] ServiceTypeDto serviceTypeDto)
         {
             if (serviceTypeDto == null)
                 return NotFound();
-            var serviceType = new ServiceType
-            {
-                Id = serviceTypeDto.Id,
 
-            };
-            _serviceTypeRepository.Update(serviceType);
-            return Ok(serviceTypeDto);
+            var serviceType = _mapper.Map<ServiceType>(serviceTypeDto);
+            _unitOfWork.ServiceType.Update(serviceType);
+            await _unitOfWork.SaveAsync();
+            return Ok(serviceType);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var serviceType = await _serviceTypeRepository.GetByIdAsync(id);
+            var serviceType = await _unitOfWork.ServiceType.GetByIdAsync(id);
             if (serviceType == null)
                 return NotFound();
-            _serviceTypeRepository.Remove(serviceType);
+            _unitOfWork.ServiceType.Remove(serviceType);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

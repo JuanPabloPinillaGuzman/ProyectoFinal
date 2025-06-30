@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UserSpecializationController : ControllerBase
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator")]
+    public class UserSpecializationController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,64 +25,50 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<UserSpecializationDto>>> Get()
         {
-            var userSpecializations = await _userSpecializationRepository.GetAllAsync();
-            var userSpecializationDtos = new List<UserSpecializationDto>();
-            foreach (var us in userSpecializations)
-            {
-                userSpecializationDtos.Add(new UserSpecializationDto
-                {
-                    UserId = us.UserId,
-                    SpecializationId = us.SpecializationId,
-
-                });
-            }
-            return Ok(userSpecializationDtos);
+            var userSpecializations = await _unitOfWork.UserSpecialization.GetAllAsync();
+            return _mapper.Map<List<UserSpecializationDto>>(userSpecializations);
         }
 
-        [HttpGet("{userId}/{specializationId}")]
-        public async Task<ActionResult<UserSpecializationDto>> GetByIds(int userId, int specializationId)
+        [HttpGet("{idUser:int}/{idSpecialization:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<UserSpecializationDto>> Get(int idUser, int idSpecialization)
         {
-            var userSpecialization = await _userSpecializationRepository.GetByIdsAsync(userId, specializationId);
+            var userSpecialization = await _unitOfWork.UserSpecialization.GetByIdsAsync(idUser, idSpecialization);
             if (userSpecialization == null)
-                return NotFound($"UserSpecialization with userId {userId} and specializationId {specializationId} was not found.");
-            var dto = new UserSpecializationDto
-            {
-                UserId = userSpecialization.UserId,
-                SpecializationId = userSpecialization.SpecializationId,
-
-            };
-            return Ok(dto);
+                return NotFound($"UserSpecialization with idUser {idUser} and idSpecialization {idSpecialization} was not found.");
+            return _mapper.Map<UserSpecializationDto>(userSpecialization);
         }
 
-        [HttpPut]
-        public IActionResult Put([FromBody] UserSpecializationDto userSpecializationDto)
+        [HttpPut("{idUser:int}/{idSpecialization:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int idUser, int idSpecialization, [FromBody] UserSpecializationDto userSpecializationDto)
         {
             if (userSpecializationDto == null)
                 return NotFound();
-            var userSpecialization = new UserSpecialization
-            {
-                UserId = userSpecializationDto.UserId,
-                SpecializationId = userSpecializationDto.SpecializationId,
 
-            };
-            _userSpecializationRepository.Update(userSpecialization);
-            return Ok(userSpecializationDto);
+            var userSpecialization = _mapper.Map<UserSpecialization>(userSpecializationDto);
+            _unitOfWork.UserSpecialization.Update(userSpecialization);
+            await _unitOfWork.SaveAsync();
+            return Ok(userSpecialization);
         }
 
-        [HttpDelete]
-        public IActionResult Delete([FromBody] UserSpecializationDto userSpecializationDto)
+        [HttpDelete("{idUser:int}/{idSpecialization:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int idUser, int idSpecialization)
         {
-            if (userSpecializationDto == null)
+            var userSpecialization = await _unitOfWork.UserSpecialization.GetByIdsAsync(idUser, idSpecialization);
+            if (userSpecialization == null)
                 return NotFound();
-            var userSpecialization = new UserSpecialization
-            {
-                UserId = userSpecializationDto.UserId,
-                SpecializationId = userSpecializationDto.SpecializationId,
-
-            };
-            _userSpecializationRepository.Remove(userSpecialization);
+            _unitOfWork.UserSpecialization.Remove(userSpecialization);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

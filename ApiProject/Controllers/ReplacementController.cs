@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class ReplacementController : ControllerBase
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator")]
+    public class ReplacementController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,91 +25,83 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<ReplacementDto>>> Get()
         {
-            var replacements = await _replacementRepository.GetAllAsync();
-            var replacementDtos = new List<ReplacementDto>();
-            foreach (var r in replacements)
-            {
-                replacementDtos.Add(new ReplacementDto
-                {
-                    Id = r.Id,
-
-                });
-            }
-            return Ok(replacementDtos);
+            var replacements = await _unitOfWork.Replacement.GetAllAsync();
+            return _mapper.Map<List<ReplacementDto>>(replacements);
         }
 
-        [HttpGet("paginated")]
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ReplacementDto>> Get(int id)
+        {
+            var replacement = await _unitOfWork.Replacement.GetByIdAsync(id);
+            if (replacement == null)
+                return NotFound($"Replacement with id {id} was not found.");
+            return _mapper.Map<ReplacementDto>(replacement);
+        }
+
+        [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Replacement>> Post(ReplacementDto replacementDto)
+        {
+            var replacement = _mapper.Map<Replacement>(replacementDto);
+            _unitOfWork.Replacement.Add(replacement);
+            await _unitOfWork.SaveAsync();
+            if (replacement == null)
+            {
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = replacement.Id }, replacement);
+        }
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] ReplacementDto replacementDto)
+        {
+            if (replacementDto == null)
+                return NotFound();
+
+            var replacement = _mapper.Map<Replacement>(replacementDto);
+            _unitOfWork.Replacement.Update(replacement);
+            await _unitOfWork.SaveAsync();
+            return Ok(replacement);
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var replacement = await _unitOfWork.Replacement.GetByIdAsync(id);
+            if (replacement == null)
+                return NotFound();
+            _unitOfWork.Replacement.Remove(replacement);
+            await _unitOfWork.SaveAsync();
+            return NoContent();
+        }
+
+        [HttpGet("pages")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<ReplacementDto>>> GetPaginated(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10,
             [FromQuery] string search = "")
         {
-            var (totalRegisters, registers) = await _replacementRepository.GetAllAsync(pageNumber, pageSize, search);
-            var replacementDtos = new List<ReplacementDto>();
-            foreach (var r in registers)
-            {
-                replacementDtos.Add(new ReplacementDto
-                {
-                    Id = r.Id,
+            var (allRegisters, registers) = await _unitOfWork.Replacement.GetAllAsync(pageNumber, pageSize, search);
+            var replacementDtos = _mapper.Map<List<ReplacementDto>>(registers);
 
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
+            // Agregar X-Total-Count en los encabezados HTTP
+            Response.Headers.Append("X-Total-Count", allRegisters.ToString());
+
             return Ok(replacementDtos);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult<ReplacementDto>> Get(int id)
-        {
-            var replacement = await _replacementRepository.GetByIdAsync(id);
-            if (replacement == null)
-                return NotFound($"Replacement with id {id} was not found.");
-            var dto = new ReplacementDto
-            {
-                Id = replacement.Id,
-
-            };
-            return Ok(dto);
-        }
-
-        [HttpPost]
-        public ActionResult<Replacement> Post(ReplacementDto replacementDto)
-        {
-            if (replacementDto == null)
-                return BadRequest();
-            var replacement = new Replacement
-            {
-                Id = replacementDto.Id,
-
-            };
-            _replacementRepository.Add(replacement);
-            return CreatedAtAction(nameof(Post), new { id = replacementDto.Id }, replacement);
-        }
-
-        [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] ReplacementDto replacementDto)
-        {
-            if (replacementDto == null)
-                return NotFound();
-            var replacement = new Replacement
-            {
-                Id = replacementDto.Id,
-
-            };
-            _replacementRepository.Update(replacement);
-            return Ok(replacementDto);
-        }
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var replacement = await _replacementRepository.GetByIdAsync(id);
-            if (replacement == null)
-                return NotFound();
-            _replacementRepository.Remove(replacement);
-            return NoContent();
         }
     }
 }

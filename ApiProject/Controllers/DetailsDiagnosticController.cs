@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class DetailsDiagnosticController : ControllerBase
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator, Mechanic")]
+    public class DetailsDiagnosticController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,64 +25,50 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DetailsDiagnosticoDto>>> Get()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<IEnumerable<DetailsDiagnosticDto>>> Get()
         {
-            var detailsDiagnostics = await _detailsDiagnosticRepository.GetAllAsync();
-            var detailsDiagnosticDtos = new List<DetailsDiagnosticoDto>();
-            foreach (var d in detailsDiagnostics)
-            {
-                detailsDiagnosticDtos.Add(new DetailsDiagnosticoDto
-                {
-                    DiagnosticId = d.DiagnosticId,
-                    ServiceOrderId = d.ServiceOrderId,
-
-                });
-            }
-            return Ok(detailsDiagnosticDtos);
+            var detailsDiagnostics = await _unitOfWork.DetailsDiagnostic.GetAllAsync();
+            return _mapper.Map<List<DetailsDiagnosticDto>>(detailsDiagnostics);
         }
 
-        [HttpGet("{diagnosticId}/{serviceOrderId}")]
-        public async Task<ActionResult<DetailsDiagnosticoDto>> GetByIds(int diagnosticId, int serviceOrderId)
+        [HttpGet("{idServiceOrder:int}/{idDiagnostic:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<DetailsDiagnosticDto>> Get(int idServiceOrder, int idDiagnostic)
         {
-            var detailsDiagnostic = await _detailsDiagnosticRepository.GetByIdsAsync(diagnosticId, serviceOrderId);
+            var detailsDiagnostic = await _unitOfWork.DetailsDiagnostic.GetByIdsAsync(idServiceOrder, idDiagnostic);
             if (detailsDiagnostic == null)
-                return NotFound($"DetailsDiagnostic with diagnosticId {diagnosticId} and serviceOrderId {serviceOrderId} was not found.");
-            var dto = new DetailsDiagnosticoDto
-            {
-                DiagnosticId = detailsDiagnostic.DiagnosticId,
-                ServiceOrderId = detailsDiagnostic.ServiceOrderId,
-
-            };
-            return Ok(dto);
+                return NotFound($"DetailsDiagnostic with idServiceOrder {idServiceOrder} and idDiagnostic {idDiagnostic} was not found.");
+            return _mapper.Map<DetailsDiagnosticDto>(detailsDiagnostic);
         }
 
-        [HttpPut]
-        public IActionResult Put([FromBody] DetailsDiagnosticoDto detailsDiagnosticDto)
+        [HttpPut("{idServiceOrder:int}/{idDiagnostic:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int idServiceOrder, int idDiagnostic, [FromBody] DetailsDiagnosticDto detailsDiagnosticoDto)
         {
-            if (detailsDiagnosticDto == null)
+            if (detailsDiagnosticoDto == null)
                 return NotFound();
-            var detailsDiagnostic = new DetailsDiagnostic
-            {
-                DiagnosticId = detailsDiagnosticDto.DiagnosticId,
-                ServiceOrderId = detailsDiagnosticDto.ServiceOrderId,
 
-            };
-            _detailsDiagnosticRepository.Update(detailsDiagnostic);
-            return Ok(detailsDiagnosticDto);
+            var detailsDiagnostic = _mapper.Map<DetailsDiagnostic>(detailsDiagnosticoDto);
+            _unitOfWork.DetailsDiagnostic.Update(detailsDiagnostic);
+            await _unitOfWork.SaveAsync();
+            return Ok(detailsDiagnostic);
         }
 
-        [HttpDelete]
-        public IActionResult Delete([FromBody] DetailsDiagnosticoDto detailsDiagnosticDto)
+        [HttpDelete("{idServiceOrder:int}/{idDiagnostic:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int idServiceOrder, int idDiagnostic)
         {
-            if (detailsDiagnosticDto == null)
+            var detailsDiagnostic = await _unitOfWork.DetailsDiagnostic.GetByIdsAsync(idServiceOrder, idDiagnostic);
+            if (detailsDiagnostic == null)
                 return NotFound();
-            var detailsDiagnostic = new DetailsDiagnostic
-            {
-                DiagnosticId = detailsDiagnosticDto.DiagnosticId,
-                ServiceOrderId = detailsDiagnosticDto.ServiceOrderId,
-
-            };
-            _detailsDiagnosticRepository.Remove(detailsDiagnostic);
+            _unitOfWork.DetailsDiagnostic.Remove(detailsDiagnostic);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }

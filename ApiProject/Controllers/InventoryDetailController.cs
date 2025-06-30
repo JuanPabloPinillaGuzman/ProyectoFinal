@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Application.Interfaces;
-using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using ApiProject.Controllers;
+using Application.DTOs;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class InventoryDetailController : ControllerBase
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // [Authorize(Roles = "Administrator, Receptionist")]
+    public class InventoryDetailController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,90 +25,65 @@ namespace ApiProject.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<InventoryDetailDto>>> Get()
         {
-            var inventoryDetails = await _inventoryDetailRepository.GetAllAsync();
-            var inventoryDetailDtos = new List<InventoryDetailDto>();
-            foreach (var i in inventoryDetails)
-            {
-                inventoryDetailDtos.Add(new InventoryDetailDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            return Ok(inventoryDetailDtos);
-        }
-
-        [HttpGet("paginated")]
-        public async Task<ActionResult<IEnumerable<InventoryDetailDto>>> GetPaginated(
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
-        {
-            var (totalRegisters, registers) = await _inventoryDetailRepository.GetAllAsync(pageNumber, pageSize, search);
-            var inventoryDetailDtos = new List<InventoryDetailDto>();
-            foreach (var i in registers)
-            {
-                inventoryDetailDtos.Add(new InventoryDetailDto
-                {
-                    Id = i.Id,
-
-                });
-            }
-            Response.Headers.Add("X-Total-Count", totalRegisters.ToString());
-            return Ok(inventoryDetailDtos);
+            var inventoryDetails = await _unitOfWork.InventoryDetail.GetAllAsync();
+            return _mapper.Map<List<InventoryDetailDto>>(inventoryDetails);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<InventoryDetailDto>> Get(int id)
         {
-            var inventoryDetail = await _inventoryDetailRepository.GetByIdAsync(id);
+            var inventoryDetail = await _unitOfWork.InventoryDetail.GetByIdAsync(id);
             if (inventoryDetail == null)
                 return NotFound($"InventoryDetail with id {id} was not found.");
-            var dto = new InventoryDetailDto
-            {
-                Id = inventoryDetail.Id,
-
-            };
-            return Ok(dto);
+            return _mapper.Map<InventoryDetailDto>(inventoryDetail);
         }
 
         [HttpPost]
-        public ActionResult<InventoryDetail> Post(InventoryDetailDto inventoryDetailDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<InventoryDetail>> Post(InventoryDetailDto inventoryDetailDto)
         {
-            if (inventoryDetailDto == null)
-                return BadRequest();
-            var inventoryDetail = new InventoryDetail
+            var inventoryDetail = _mapper.Map<InventoryDetail>(inventoryDetailDto);
+            _unitOfWork.InventoryDetail.Add(inventoryDetail);
+            await _unitOfWork.SaveAsync();
+            if (inventoryDetail == null)
             {
-                Id = inventoryDetailDto.Id,
-
-            };
-            _inventoryDetailRepository.Add(inventoryDetail);
-            return CreatedAtAction(nameof(Post), new { id = inventoryDetailDto.Id }, inventoryDetail);
+                return BadRequest();
+            }
+            return CreatedAtAction(nameof(Post), new { id = inventoryDetail.Id }, inventoryDetail);
         }
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] InventoryDetailDto inventoryDetailDto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Put(int id, [FromBody] InventoryDetailDto inventoryDetailDto)
         {
             if (inventoryDetailDto == null)
                 return NotFound();
-            var inventoryDetail = new InventoryDetail
-            {
-                Id = inventoryDetailDto.Id,
 
-            };
-            _inventoryDetailRepository.Update(inventoryDetail);
-            return Ok(inventoryDetailDto);
+            var inventoryDetail = _mapper.Map<InventoryDetail>(inventoryDetailDto);
+            _unitOfWork.InventoryDetail.Update(inventoryDetail);
+            await _unitOfWork.SaveAsync();
+            return Ok(inventoryDetail);
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var inventoryDetail = await _inventoryDetailRepository.GetByIdAsync(id);
+            var inventoryDetail = await _unitOfWork.InventoryDetail.GetByIdAsync(id);
             if (inventoryDetail == null)
                 return NotFound();
-            _inventoryDetailRepository.Remove(inventoryDetail);
+            _unitOfWork.InventoryDetail.Remove(inventoryDetail);
+            await _unitOfWork.SaveAsync();
             return NoContent();
         }
     }
