@@ -14,8 +14,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.ConfigureCors();

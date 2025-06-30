@@ -29,30 +29,45 @@ namespace Infrastructure.Repositories
 
          public override async Task<(int allRegisters, IEnumerable<ServiceOrder> registers)> GetAllAsync(int pageIndex, int pageSize, string search)
         {
-            var query = _context.ServiceOrder.AsQueryable();
+            var query = _context.ServiceOrder
+                .Include(so => so.Vehicle)
+                    .ThenInclude(v => v.Client)
+                .Include(so => so.State)
+                .Include(so => so.User)
+                .AsQueryable();
 
             if (!String.IsNullOrEmpty(search))
             {
+                var searchLower = search.ToLower();
                 query = query.Where(so => 
-                    EF.Functions.Like(so.EntryDate.ToString(), $"%{search.ToLower()}%") ||
-                    EF.Functions.Like(so.Vehicle.Client.Name.ToLower(), $"%{search.ToLower()}%") ||
-                    EF.Functions.Like(so.State.StateType.ToLower(), $"%{search.ToLower()}%") ||
-                    EF.Functions.Like(so.User.Name.ToLower(), $"%{search.ToLower()}%")
+                    so.Vehicle.Client.Name.ToLower().Contains(searchLower) ||
+                    so.State.StateType.ToLower().Contains(searchLower) ||
+                    so.User.Name.ToLower().Contains(searchLower)
                 );
             }
 
             var allRegisters = await query.CountAsync();
 
             var registers = await query
-                                    .Include(so => so.Vehicle)
-                                        .ThenInclude(v => v.Client)
-                                    .Include(so => so.State)
-                                    .Include(so => so.User)
                                     .Skip((pageIndex - 1) * pageSize)
                                     .Take(pageSize)
                                     .ToListAsync();
 
             return (allRegisters, registers);
         }
+
+        public async Task<bool> GetOrdersByVehicleAsync(int idVehicle)
+        {
+            return await _context.ServiceOrder
+                    .AnyAsync(so => so.IdVehicle == idVehicle && (so.IdState == 1 || so.IdState == 2));
+        }
+
+        public async Task<IEnumerable<ServiceOrder>> GetOrdersByClientAsync(int idClient)
+        {
+            return await _context.ServiceOrder
+                .Include(so => so.Vehicle)
+                .Where(so => so.Vehicle.IdClient == idClient && (so.IdState == 2 || so.IdState == 1))
+                .ToListAsync();
+        } 
     }
 } 

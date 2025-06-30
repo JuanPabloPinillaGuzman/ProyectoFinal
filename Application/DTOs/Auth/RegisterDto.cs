@@ -9,8 +9,6 @@ namespace Application.DTOs
     public class RegisterDto
     {
         [Required]
-        public int Id { get; set; }
-        [Required]
         public string? Name { get; set; }
         [Required]
         public string? LastName { get; set; }
@@ -20,9 +18,6 @@ namespace Application.DTOs
         [Required]
         public string? Username { get; set; }
         [Required]
-        public string? Password { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public string? PasswordHash { get; set; }
     }
 }

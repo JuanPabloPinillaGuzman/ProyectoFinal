@@ -8,12 +8,14 @@ using Microsoft.Extensions.Logging;
 using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator")]
     public class StateController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

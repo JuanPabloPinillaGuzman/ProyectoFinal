@@ -13,15 +13,11 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ApiProject.Controllers
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize(Roles = "Administrator, Receptionist")]
-    public class InventoryController : BaseApiController
+    public class RefreshTokenController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-
-        public InventoryController(IUnitOfWork unitOfWork, IMapper mapper)
+        public RefreshTokenController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -30,51 +26,53 @@ namespace ApiProject.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<InventoryDto>>> Get()
+        public async Task<ActionResult<IEnumerable<RefreshTokenDto>>> Get()
         {
-            var inventories = await _unitOfWork.Inventory.GetAllAsync();
-            return _mapper.Map<List<InventoryDto>>(inventories);
+            var RefreshToken = await _unitOfWork.RefreshToken.GetAllAsync();
+            return _mapper.Map<List<RefreshTokenDto>>(RefreshToken);
         }
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<InventoryDto>> Get(int id)
+        public async Task<ActionResult<RefreshTokenDto>> Get(int id)
         {
-            var inventory = await _unitOfWork.Inventory.GetByIdAsync(id);
-            if (inventory == null)
-                return NotFound($"Inventory with id {id} was not found.");
-            return _mapper.Map<InventoryDto>(inventory);
+            var RefreshToken = await _unitOfWork.RefreshToken.GetByIdAsync(id);
+            if (RefreshToken == null)
+            {
+                return NotFound($"Refresh Token with id {id} was not found.");
+            }
+            return _mapper.Map<RefreshTokenDto>(RefreshToken);
         }
 
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<Inventory>> Post(InventoryDto inventoryDto)
+        public async Task<ActionResult<RefreshToken>> Post(RefreshTokenDto refreshTokenDto)
         {
-            var inventory = _mapper.Map<Inventory>(inventoryDto);
-            _unitOfWork.Inventory.Add(inventory);
+            var refreshToken = _mapper.Map<RefreshToken>(refreshTokenDto);
+            _unitOfWork.RefreshToken.Add(refreshToken);
             await _unitOfWork.SaveAsync();
-            if (inventory == null)
+            if (refreshTokenDto == null)
             {
                 return BadRequest();
             }
-            return CreatedAtAction(nameof(Post), new { id = inventory.Id }, inventory);
+            return CreatedAtAction(nameof(Post), new { id = refreshTokenDto.Id }, refreshTokenDto);
         }
 
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Put(int id, [FromBody] InventoryDto inventoryDto)
+        public async Task<IActionResult> Put(int id, [FromBody] RefreshTokenDto refreshTokenDto)
         {
-            if (inventoryDto == null)
+            // Validación: objeto nulo
+            if (refreshTokenDto == null)
                 return NotFound();
-
-            var inventory = _mapper.Map<Inventory>(inventoryDto);
-            _unitOfWork.Inventory.Update(inventory);
+            var refreshToken = _mapper.Map<RefreshToken>(refreshTokenDto);
+            _unitOfWork.RefreshToken.Update(refreshToken);
             await _unitOfWork.SaveAsync();
-            return Ok(inventory);
+            return Ok(refreshTokenDto);
         }
 
         [HttpDelete("{id}")]
@@ -82,10 +80,10 @@ namespace ApiProject.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var inventory = await _unitOfWork.Inventory.GetByIdAsync(id);
-            if (inventory == null)
+            var RefreshToken = await _unitOfWork.RefreshToken.GetByIdAsync(id);
+            if (RefreshToken == null)
                 return NotFound();
-            _unitOfWork.Inventory.Remove(inventory);
+            _unitOfWork.RefreshToken.Remove(RefreshToken);
             await _unitOfWork.SaveAsync();
             return NoContent();
         }

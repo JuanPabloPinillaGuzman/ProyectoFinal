@@ -9,11 +9,13 @@ using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Recepcionist")]
     public class VehicleController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -69,6 +71,13 @@ namespace ApiProject.Controllers
             if (vehicleDto == null)
                 return NotFound();
 
+            var ordenesActivas = await _unitOfWork.ServiceOrder.GetOrdersByVehicleAsync(id);
+
+            if (ordenesActivas)
+            {
+                return Conflict("Cannot update vehicle with active service orders.");
+            }
+
             var vehicle = _mapper.Map<Vehicle>(vehicleDto);
             _unitOfWork.Vehicle.Update(vehicle);
             await _unitOfWork.SaveAsync();
@@ -83,6 +92,13 @@ namespace ApiProject.Controllers
             var vehicle = await _unitOfWork.Vehicle.GetByIdAsync(id);
             if (vehicle == null)
                 return NotFound();
+
+            var ordenesActivas = await _unitOfWork.ServiceOrder.GetOrdersByVehicleAsync(id);
+
+            if (ordenesActivas)
+            {
+                return Conflict("Cannot delete vehicle with active service orders.");
+            }
             _unitOfWork.Vehicle.Remove(vehicle);
             await _unitOfWork.SaveAsync();
             return NoContent();

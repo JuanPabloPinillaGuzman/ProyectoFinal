@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ApiProject.Services;
 using Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiProject.Controllers;
 

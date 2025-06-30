@@ -8,21 +8,27 @@ using Microsoft.Extensions.Logging;
 using Application.Interfaces;
 using Application.DTOs;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
+using Application.Services;
+using ApiProject.Helpers.Errors;
 
 namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Administrator, Mechanic")]
     public class InvoiceController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly GenerateInvoiceService _generateInvoice;
 
-        public InvoiceController(IUnitOfWork unitOfWork, IMapper mapper)
+        public InvoiceController(IUnitOfWork unitOfWork, IMapper mapper, GenerateInvoiceService generateInvoice)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _generateInvoice = generateInvoice;
         }
 
         [HttpGet]
@@ -86,6 +92,27 @@ namespace ApiProject.Controllers
             _unitOfWork.Invoice.Remove(invoice);
             await _unitOfWork.SaveAsync();
             return NoContent();
+        }
+
+        [HttpPost("generate/{serviceOrderId}")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Generate(int serviceOrderId)
+        {
+            try
+            {
+                var invoiceDto = await _generateInvoice.GenerateInvoiceAsync(serviceOrderId);
+                return CreatedAtAction(nameof(Get), new { id = invoiceDto.Id }, invoiceDto);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("not found"))
+                    return NotFound(new ApiResponse(404, ex.Message));
+                if (ex.Message.Contains("No order details"))
+                    return BadRequest(new ApiResponse(400, ex.Message));
+                return StatusCode(500, new ApiResponse(500, ex.Message));
+            }
         }
     }
 }
