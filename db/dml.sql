@@ -56,15 +56,15 @@ VALUES
 
 -- Order Details
 INSERT INTO public.order_details (id_order, id_replacement, quantity, total_cost, created_at, updated_at)
-VALUES 
-(1, 4, 100.0, CURRENT_DATE, CURRENT_DATE),
-(2, 2, 30.0, CURRENT_DATE, CURRENT_DATE);
+VALUES
+(1, 1, 4, 100.0, CURRENT_DATE, CURRENT_DATE),
+(2, 2, 2, 30.0, CURRENT_DATE, CURRENT_DATE);
 
 -- Invoices
 INSERT INTO public.invoices (service_order_id, issue_date, labor_total, replacements_total, total_amount, created_at, updated_at)
-VALUES 
-('2025-06-26', 80.0, 100.0, 180.0, CURRENT_DATE, CURRENT_DATE),
-('2025-06-28', 50.0, 30.0, 80.0, CURRENT_DATE, CURRENT_DATE);
+VALUES
+(1, '2025-06-26', 80.0, 100.0, 180.0, CURRENT_DATE, CURRENT_DATE),
+(2, '2025-06-28', 50.0, 30.0, 80.0, CURRENT_DATE, CURRENT_DATE);
 
 -- Diagnostics
 INSERT INTO public.diagnostics (id_user, description, created_at, updated_at)
@@ -86,9 +86,9 @@ VALUES
 
 -- Inventory Details
 INSERT INTO public.inventory_details (id_order, id_inventory, quantity, created_at, updated_at)
-VALUES 
-(1, 10, '2025-06-25', '2025-06-25'),
-(2, 5, '2025-06-27', '2025-06-27');
+VALUES
+(1, 1, 10, '2025-06-25', '2025-06-25'),
+(2, 2, 5, '2025-06-27', '2025-06-27');
 
 -- Specializations
 INSERT INTO public.specializations (name, created_at, updated_at)
