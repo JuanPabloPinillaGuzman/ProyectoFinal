@@ -50,12 +50,12 @@ namespace ApiProject.Services
                 LastName = registerDto.LastName,
                 Username = registerDto.Username,
                 Email = registerDto.Email,
-                PasswordHash = registerDto.Password,
+                PasswordHash = registerDto.PasswordHash,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
                 UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
-            usuario.PasswordHash = _passwordHasher.HashPassword(usuario, registerDto.Password!);
+            usuario.PasswordHash = _passwordHasher.HashPassword(usuario, registerDto.PasswordHash!);
 
             var UsuarioExiste = _unitOfWork.User
                 .Find(u => u.Username.ToLower() == registerDto.Username.ToLower())
