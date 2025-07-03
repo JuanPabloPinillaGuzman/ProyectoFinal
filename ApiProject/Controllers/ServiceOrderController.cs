@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "administrator, recepcionist, mechanic")]
+    [Authorize(Roles = "administrator, receptionist, mechanic")]
     public class ServiceOrderController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

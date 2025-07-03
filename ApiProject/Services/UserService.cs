@@ -49,12 +49,13 @@ namespace ApiProject.Services
                 LastName = registerDto.LastName,
                 Username = registerDto.Username,
                 Email = registerDto.Email,
-                Password = registerDto.Password,
                 CreatedAt = DateOnly.FromDateTime(DateTime.UtcNow),
                 UpdatedAt = DateOnly.FromDateTime(DateTime.UtcNow)
             };
 
-            usuario.Password = _passwordHasher.HashPassword(usuario, registerDto.Password!);
+            var hashedPassword = _passwordHasher.HashPassword(usuario, registerDto.Password!);
+            Console.WriteLine($"🔐 Hashed: {hashedPassword}");
+            usuario.Password = hashedPassword;
 
             var UsuarioExiste = _unitOfWork.User
                 .Find(u => u.Username.ToLower() == registerDto.Username.ToLower())

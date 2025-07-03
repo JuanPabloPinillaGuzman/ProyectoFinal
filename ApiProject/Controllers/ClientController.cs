@@ -14,7 +14,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Administrator, Recepcionist")]
+    [Authorize(Roles = "administrator, receptionist")]
     public class ClientController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
