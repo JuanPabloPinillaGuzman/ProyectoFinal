@@ -12,7 +12,7 @@ namespace ApiProject.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "administrator, recepcionist")]
+    [Authorize(Roles = "administrator, receptionist")]
     public class VehicleController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
