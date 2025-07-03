@@ -18,6 +18,6 @@ namespace Application.DTOs
         [Required]
         public string? Username { get; set; }
         [Required]
-        public string? PasswordHash { get; set; }
+        public string? Password { get; set; }
     }
 }

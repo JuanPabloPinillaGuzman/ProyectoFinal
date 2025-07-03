@@ -2,30 +2,34 @@ using AutoMapper;
 using Application.DTOs;
 using Domain.Entities;
 
-namespace ApiProject.Profiles
+namespace ApiProject.Profiles;
+
+public class MappingProfiles : Profile
 {
-    public class MappingProfiles : Profile
+    public MappingProfiles()
     {
-        public MappingProfiles()
-        {
-            CreateMap<Auditory, AuditoryDto>().ReverseMap();
-            CreateMap<Client, ClientDto>().ReverseMap();
-            CreateMap<DetailsDiagnostic, DetailsDiagnosticDto>().ReverseMap();
-            CreateMap<Diagnostic, DiagnosticDto>().ReverseMap();
-            CreateMap<InventoryDetail, InventoryDetailDto>().ReverseMap();
-            CreateMap<Inventory, InventoryDto>().ReverseMap();
-            CreateMap<Invoice, InvoiceDto>().ReverseMap();
-            CreateMap<OrderDetails, OrderDetailsDto>().ReverseMap();
-            CreateMap<Replacement, ReplacementDto>().ReverseMap();            
-            CreateMap<Role, RoleDto>().ReverseMap();
-            CreateMap<ServiceOrder, ServiceOrderDto>().ReverseMap();
-            CreateMap<ServiceType, ServiceTypeDto>().ReverseMap();
-            CreateMap<Specialization, SpecializationDto>().ReverseMap();
-            CreateMap<State, StateDto>().ReverseMap();
-            CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<UserRole, UserRoleDto>().ReverseMap();
-            CreateMap<UserSpecialization, UserSpecializationDto>().ReverseMap();
-            CreateMap<Vehicle, VehicleDto>().ReverseMap();
-        }
+        CreateMap<Auditory, AuditoryDto>().ReverseMap();
+        CreateMap<Client, ClientDto>().ReverseMap();
+        CreateMap<DetailsDiagnostic, DetailsDiagnosticDto>().ReverseMap();
+        CreateMap<Diagnostic, DiagnosticDto>().ReverseMap();
+        CreateMap<InventoryDetail, InventoryDetailDto>().ReverseMap();
+        CreateMap<Inventory, InventoryDto>().ReverseMap();
+        CreateMap<Invoice, InvoiceDto>().ReverseMap();
+        CreateMap<OrderDetails, OrderDetailsDto>().ReverseMap();
+        CreateMap<Replacement, ReplacementDto>().ReverseMap();
+        CreateMap<Role, RoleDto>().ReverseMap();
+        CreateMap<ServiceOrder, ServiceOrderDto>().ReverseMap();
+        CreateMap<ServiceType, ServiceTypeDto>().ReverseMap();
+        CreateMap<Specialization, SpecializationDto>().ReverseMap();
+        CreateMap<State, StateDto>().ReverseMap();
+        CreateMap<User, UserDto>().ReverseMap();
+        CreateMap<UserRole, UserRoleDto>().ReverseMap();
+        CreateMap<UserSpecialization, UserSpecializationDto>().ReverseMap();
+        CreateMap<Vehicle, VehicleDto>().ReverseMap();
+        CreateMap<RefreshToken, RefreshTokenDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ReverseMap()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+
     }
 }

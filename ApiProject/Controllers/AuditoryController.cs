@@ -10,6 +10,9 @@ using AutoMapper;
 
 namespace ApiProject.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "administrator")]
     public class AuditoryController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -10,9 +10,9 @@ using AutoMapper;
 
 namespace ApiProject.Controllers
 {
-    // [ApiController]
-    // [Route("api/[controller]")]
-    // [Authorize(Roles = "Administrator, Receptionist")]
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize(Roles = "administrator, receptionist")]
     public class InventoryDetailController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;

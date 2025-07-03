@@ -13,5 +13,7 @@ namespace ApiProject.Helpers
             Receptionist,
             Mechanic
         }
+
+        public const Roles rol_predeterminado = Roles.Administrator;
     }
 }

@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
 using ApiProject.Helpers;
-using ApiProject.Helpers.Errors;
 using ApiProject.Services;
 using Application.Interfaces;
 using Application.Services;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using ApiProject.Helpers.Errors;
 
 namespace ApiProject.Extensions
 {
@@ -100,35 +100,35 @@ namespace ApiProject.Extensions
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!))
                     };
                 });
-                // 3. Authorization – Policies
-                services.AddAuthorization(options =>
-                {
-                    // Solo Admins
-                    options.AddPolicy("AdminOnly", policy =>
-                        policy.RequireRole("Admin"));
+                    // 3. Authorization – Policies
+                    services.AddAuthorization(options =>
+                    {
+                        // Solo Admins
+                options.AddPolicy("AdminOnly", policy =>
+                    policy.RequireRole("Administrator"));
 
-                    // Solo Mechanics
-                    options.AddPolicy("MechanicOnly", policy =>
-                        policy.RequireRole("Mechanic"));
+                // Solo Mechanics
+                options.AddPolicy("MechanicOnly", policy =>
+                    policy.RequireRole("Mechanic"));
 
-                    // Solo Clients
-                    options.AddPolicy("ClientOnly", policy =>
-                        policy.RequireRole("Client"));
+                // Solo Recepcionista
+                options.AddPolicy("RecepcionistOnly", policy =>
+                    policy.RequireRole("Recepcionist"));
 
-                    // Admins o Mechanics
-                    options.AddPolicy("AdminOrMechanic", policy =>
-                        policy.RequireRole("Admin", "Mechanic"));
+                // Admins o Mechanics
+                options.AddPolicy("AdminOrMechanic", policy =>
+                    policy.RequireRole("Administrator", "Mechanic"));
 
-                    // Claim de suscripción premium
-                    options.AddPolicy("PremiumSubscription", policy =>
-                        policy.RequireClaim("Subscription", "Premium"));
+                // Claim de suscripción premium
+                options.AddPolicy("PremiumSubscription", policy =>
+                    policy.RequireClaim("Subscription", "Premium"));
 
-                    // Paciente o Premium (ejemplo compuesto)
-                    options.AddPolicy("PatientOrPremium", policy =>
-                        policy.RequireAssertion(context =>
-                            context.User.IsInRole("Patient") ||
-                            context.User.HasClaim(c => c.Type == "Subscription" && c.Value == "Premium")));
-                });
+                // Paciente o Premium (ejemplo compuesto)
+                options.AddPolicy("PatientOrPremium", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.IsInRole("Patient") ||
+                        context.User.HasClaim(c => c.Type == "Subscription" && c.Value == "Premium")));
+            });
         }
         public static void AddValidationErrors(this IServiceCollection services)
         {

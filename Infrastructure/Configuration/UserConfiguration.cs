@@ -39,7 +39,7 @@ namespace Infrastructure.Configuration
                 .IsRequired()
                 .HasColumnName("username");
 
-            builder.Property(a => a.PasswordHash)
+            builder.Property(a => a.Password)
                 .IsRequired()
                 .HasColumnName("passwordhash");
 

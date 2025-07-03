@@ -30,14 +30,5 @@ namespace Infrastructure.Repositories
                             .Include(u => u.RefreshTokens)
                             .FirstOrDefaultAsync(u => u.Username.ToLower() == username.ToLower());
         }
-
-        public async Task<User> GetByRefreshTokenAsync(string refreshToken)
-        {
-            return await _context.User
-                            .Include(u => u.UserRoles)
-                                .ThenInclude(ur => ur.Role)
-                            .Include(u => u.RefreshTokens)
-                            .FirstOrDefaultAsync(u => u.RefreshTokens.Any(t => t.Token == refreshToken));
-        }
     }
 } 
